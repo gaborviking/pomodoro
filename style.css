@@ -1,0 +1,246 @@
+/* ===== ALAP RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: 0.3s !important;
+}
+
+body, main, section, article, div{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px 3%;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    width: 100%;
+    max-width: 832px;
+    margin: auto;
+}
+
+body{
+    min-height: 100vh;
+    background: var(--v-global-color-light);
+    padding: 40px 20px;
+}
+
+/* ===== Globális színek, tipográfia ===== */
+
+.vikingo-global-kit{
+    --v-global-color-primary: #008C78;
+    --v-global-color-secondary: #011111;
+    --v-global-color-text: #404040;
+    --v-global-color-accent: #F0A000;
+    --v-global-color-light: #FEFAF2;
+    --v-global-color-border: #011111;
+    --v-global-subtitle-font-size: 18px;
+    --v-global-subtitle-font-weight: 700;
+    --container-max-width: 1260px;
+}
+
+/* ===== Globális betűtípusok ===== */
+
+body{
+    font-family: "Roboto", Sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6em;
+    color: var(--v-global-color-text);
+}
+
+a{
+    color: var(--v-global-color-accent);
+}
+
+h1{
+    font-family: "Varela Round", Sans-serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.3em;
+    color: var(--v-global-color-secondary);
+}
+
+h2{
+    font-family: "Varela Round", Sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.3em;
+    color: var(--v-global-color-secondary);
+}
+
+h3{
+    font-family: "Varela Round", Sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3em;
+    color: var(--v-global-color-secondary);
+}
+
+h4{
+    font-family: "Varela Round", Sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3em;
+    color: var(--v-global-color-secondary);
+}
+
+h5{
+    font-family: "Varela Round", Sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3em;
+    color: var(--v-global-color-secondary);
+}
+
+h6{
+    font-family: "Varela Round", Sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3em;
+    color: var(--v-global-color-secondary);
+}
+
+/* ===== Globális gomb ===== */
+
+button{
+    padding: 12px 20px;
+    background: var(--v-global-color-accent);
+    border: 2px solid var(--v-global-color-border);
+    color: var(--v-global-color-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 2px 2px 0px var(--v-global-color-secondary);
+    cursor: pointer;
+}
+
+button:hover{
+    background: var(--v-global-color-primary);
+    color: var(--v-global-color-light);
+    box-shadow: 0px 0px 0px var(--v-global-color-secondary);
+}
+
+.button-secondary{
+    background: var(--v-global-color-primary);
+    color: var(--v-global-color-light);
+}
+
+.button-secondary:hover{
+    background: var(--v-global-color-accent);
+    color: var(--v-global-color-secondary);
+    box-shadow: 0px 0px 0px var(--v-global-color-secondary);
+}
+
+/* ===== Egyedi stílusok - DESKTOP ===== */
+
+h1{
+    text-align: center;
+}
+
+.pomodoro-minus{
+    background: var(--v-global-color-accent);
+}
+
+.pomodoro-icon-button svg{
+    width: 15px;
+    height: 15px;
+}
+
+.pomodoro-icon-button{
+    border-radius: 100px;
+    height: 25px;
+    width: 25px;
+    margin: 0px 10px;
+    cursor: pointer;
+}
+
+.pomodoro-icon-button:hover{
+    transform: scale(0.95);
+    opacity: 0.5;
+}
+
+.pomodoro-plus{
+    background: var(--v-global-color-primary);
+}
+
+.pomodoro-settings-box{
+    width: 31.3%;
+    border: 2px solid var(--v-global-color-border);
+    padding: 40px 20px;
+    background-color: #fff;
+    box-shadow: 4px 4px 0px var(--v-global-color-secondary);
+    row-gap: 15px;
+    user-select: none;
+}
+
+.settings-title{
+    width: 100%;
+    font-size: var(--v-global-subtitle-font-size);
+    font-weight: var(--v-global-subtitle-font-weight);
+    text-align: center;
+    color: var(--v-global-color-secondary);
+}
+
+.settings-time{
+    width: 100%;
+    text-align: center;
+}
+
+.pomodoro-time{
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--v-global-color-primary);
+}
+
+
+.pomodoro-clock {
+    position: relative;
+    height: 20vw;
+    width: 20vw;
+    background: #fff;
+    border: 2px solid var(--v-global-color-border);
+    border-radius: 100%;
+}
+
+.progress-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotate(-90deg) scale(1.18);
+}
+
+.progress-ring__circle {
+    transition: stroke-dashoffset 1s linear;
+    transform: rotate(0deg);
+    transform-origin: 50% 50%;
+}
+
+
+/* ===== Egyedi stílusok - LAPTOP ===== */
+@media(max-width:1366px){
+    .pomodoro-clock{
+        height: 30vw;
+        width: 30vw;
+    }
+}
+
+/* ===== Egyedi stílusok - TABLET ===== */
+@media(max-width:1024px){
+    .pomodoro-clock{
+        height: 40vw;
+        width: 40vw;
+    }
+}
+
+/* ===== Egyedi stílusok - MOBIL ===== */
+@media(max-width:767px){
+    .pomodoro-clock{
+        height: 60vw;
+        width: 60vw;
+    }
+    .pomodoro-settings-box{
+        width: 100%;
+    }
+    h1{
+        font-size: 32px;
+    }
+}
