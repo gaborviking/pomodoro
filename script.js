@@ -27,7 +27,7 @@ const circumference = 2 * Math.PI * radius;
 // =======================
 let pomodoroDuration = 25 * 60;
 let shortBreakDuration = 5 * 60;
-let longBreakDuration = 15 * 60; // jellemző érték (25 helyett)
+let longBreakDuration = 15 * 60; // jellemző érték
 
 let currentTime = pomodoroDuration;
 let pomodoroCount = 1;
@@ -72,7 +72,8 @@ function loadState() {
     isRunning = s.isRunning ?? false;
     phaseStartTs = s.phaseStartTs ?? Date.now();
     endTimestamp = s.endTimestamp ?? null;
-    // currentTime-ot úgyis újraszámoljuk a „valódi idő” alapján
+    // currentTime-ot úgyis újraszámoljuk vagy megtartjuk a módtól függően
+    currentTime = s.currentTime ?? currentTime;
     return true;
   } catch(e) { return false; }
 }
@@ -129,10 +130,10 @@ function notify(title, body) {
 // =======================
 // Idővonal-szimuláció (catch-up)
 // =======================
-// Kiszámolja, a phaseStartTs óta eltelt idő alapján HÁNY szakasz telt le,
-// és beállítja az aktuális módot, pomodoroCount-ot, currentTime-ot.
-// Akkor is működik, ha órákra fagyasztották a lapot vagy bezárták a gépet.
+// FIX: álló módban (isRunning=false) semmit ne léptessen!
 function recomputeFromClock(now = Date.now()) {
+  if (!isRunning) return; // <<<<< fontos védelem
+
   let mode = currentMode;
   let pCount = pomodoroCount;
 
@@ -169,7 +170,6 @@ function recomputeFromClock(now = Date.now()) {
       mode = 'pomodoro';
       pCount++;
     }
-    // és folytatódik a while, amíg el nem fogy az elapsed
   }
 }
 
@@ -216,13 +216,20 @@ function startTimer() {
   ensureNotificationPermission();
 
   if (!isRunning) {
-    // indul/folytat
     const now = Date.now();
-    // ha nincs endTimestamp, vagy félrement, számoljuk újra
-    if (!endTimestamp || now > endTimestamp + 2000) {
+
+    if (endTimestamp && now > endTimestamp + 2000) {
+      // ha nagyon elcsúszott, csak ekkor catch-upolunk
       recomputeFromClock(now);
+    } else if (!endTimestamp) {
+      // PAUSE-ból vagy friss indulás: építsük újra a határidőt a megmaradt időből
+      const totalMs = getTotalDurationForMode() * 1000;
+      const remainingMs = currentTime * 1000;
+      endTimestamp = now + remainingMs;
+      // olyan phaseStartTs, mintha a szakasz a „total - remaining” idővel ezelőtt indult volna
+      phaseStartTs = now - (totalMs - remainingMs);
     } else {
-      // biztos ami biztos: igazítsuk a currentTime-ot
+      // normál eset: igazítjuk a currentTime-ot
       currentTime = Math.max(0, Math.ceil((endTimestamp - now) / 1000));
     }
 
@@ -236,13 +243,14 @@ function startTimer() {
     timer = null;
     isRunning = false;
 
-    // Fagyasztásbiztos: mentsük el az éppen aktuális állapothoz kötve a phaseStartTs-t
     const now = Date.now();
-    const total = getTotalDurationForMode() * 1000;
-    const elapsed = total - Math.max(0, (endTimestamp ?? now) - now);
-    // Új phaseStartTs: most - eddig eltelt
-    phaseStartTs = now - Math.max(0, elapsed);
-    endTimestamp = now + currentTime * 1000;
+    const totalMs = getTotalDurationForMode() * 1000;
+    const remainingMs = Math.max(0, (endTimestamp ?? now) - now);
+    const elapsedMs = totalMs - remainingMs;
+
+    // Fagyasztott állapot: állapítsuk be úgy, hogy a CURRENT állapotból ne „haladjon tovább”
+    phaseStartTs = now - elapsedMs; // csak konzisztenciához
+    endTimestamp = null;            // <<<<< nagyon fontos: amíg áll, ne legyen élő célidő!
 
     startButton.textContent = 'Folytatás';
     updateDisplay();
@@ -261,9 +269,9 @@ function resetTimer() {
   else currentTime = longBreakDuration;
 
   phaseStartTs = Date.now();
-  endTimestamp = phaseStartTs + currentTime * 1000;
+  endTimestamp = null; // reset után álló állapotban nincs élő célidő
 
-  setProgress(0); // induláskor 0% kész (ahogy telik az idő, nő)
+  setProgress(0); // induláskor 0% kész
   updateDisplay();
   saveState();
 }
@@ -304,7 +312,7 @@ plusDurationButton.addEventListener('click', () => {
     if (currentMode === 'pomodoro') {
       currentTime = pomodoroDuration;
       phaseStartTs = Date.now();
-      endTimestamp = phaseStartTs + currentTime * 1000;
+      endTimestamp = null;
       updateDisplay();
       setProgress(0);
       saveState();
@@ -318,7 +326,7 @@ minusDurationButton.addEventListener('click', () => {
     if (currentMode === 'pomodoro') {
       currentTime = pomodoroDuration;
       phaseStartTs = Date.now();
-      endTimestamp = phaseStartTs + currentTime * 1000;
+      endTimestamp = null;
       updateDisplay();
       setProgress(0);
       saveState();
@@ -333,7 +341,7 @@ plusShortBreakButton.addEventListener('click', () => {
     if (currentMode === 'short') {
       currentTime = shortBreakDuration;
       phaseStartTs = Date.now();
-      endTimestamp = phaseStartTs + currentTime * 1000;
+      endTimestamp = null;
       updateDisplay();
       setProgress(0);
       saveState();
@@ -347,7 +355,7 @@ minusShortBreakButton.addEventListener('click', () => {
     if (currentMode === 'short') {
       currentTime = shortBreakDuration;
       phaseStartTs = Date.now();
-      endTimestamp = phaseStartTs + currentTime * 1000;
+      endTimestamp = null;
       updateDisplay();
       setProgress(0);
       saveState();
@@ -362,7 +370,7 @@ plusLongBreakButton.addEventListener('click', () => {
     if (currentMode === 'long') {
       currentTime = longBreakDuration;
       phaseStartTs = Date.now();
-      endTimestamp = phaseStartTs + currentTime * 1000;
+      endTimestamp = null;
       updateDisplay();
       setProgress(0);
       saveState();
@@ -376,7 +384,7 @@ minusLongBreakButton.addEventListener('click', () => {
     if (currentMode === 'long') {
       currentTime = longBreakDuration;
       phaseStartTs = Date.now();
-      endTimestamp = phaseStartTs + currentTime * 1000;
+      endTimestamp = null;
       updateDisplay();
       setProgress(0);
       saveState();
@@ -389,17 +397,18 @@ minusLongBreakButton.addEventListener('click', () => {
 // =======================
 startButton.addEventListener('click', () => {
   if (!isRunning) {
-    // indulás előtt mindig „valódi idő” alapján igazítunk
-    recomputeFromClock(Date.now());
+    // indulás előtt csak akkor igazítunk „valódi idő” alapján, ha kell
+    // (startTimer kezeli a szükséges eseteket)
   }
   startTimer();
 });
 resetButton.addEventListener('click', resetTimer);
 
-// A láthatóság változásakor mindig „catch-up”
+// A láthatóság változásakor csak futás közben „catch-up”
 document.addEventListener('visibilitychange', () => {
-  // csupán UI frissítéshez nem kell futnia az intervalnak
-  recomputeFromClock(Date.now());
+  if (isRunning) {
+    recomputeFromClock(Date.now());
+  }
   updateDisplay();
   const total = getTotalDurationForMode();
   const progressPercent = ((total - currentTime) / total) * 100;
@@ -416,14 +425,21 @@ if (!loadState()) {
   phaseStartTs = Date.now();
   currentMode = 'pomodoro';
   currentTime = pomodoroDuration;
-  endTimestamp = phaseStartTs + currentTime * 1000;
+  endTimestamp = null; // álló állapot
   setProgress(0);
   updateDisplay();
   saveState();
 } else {
-  // visszatöltött állapotból kiszámoljuk a jelen helyzetet
   refreshSettingUI();
-  recomputeFromClock(Date.now());
+
+  if (isRunning) {
+    // Csak futás közben catch-up
+    recomputeFromClock(Date.now());
+  } else {
+    // PAUSE: tartsuk meg a fagyasztott hátralévőt
+    endTimestamp = null; // jelezzük, hogy nincs élő „vége időpont”
+  }
+
   const total = getTotalDurationForMode();
   const progressPercent = ((total - currentTime) / total) * 100;
   setProgress(progressPercent);
